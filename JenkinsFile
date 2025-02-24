@@ -1,0 +1,102 @@
+pipeline {
+    agent any
+
+    environment {
+        DOCKERHUB_USERNAME = credentials('mita03-devops-final') // Stored in Jenkins credentials
+        DOCKERHUB_PASSWORD = credentials('Mita4229@') // Stored in Jenkins credentials
+        IMAGE_NAME = "mita_docker_image/myimagename"
+        TIMESTAMP = "${BUILD_NUMBER}-${new Date().format('dd-MM-HH-mm')}"
+    }
+
+    stages {
+        stage('Trigger on Merge Request') {
+            when {
+                expression {
+                    return env.GIT_BRANCH == 'origin/main'
+                }
+            }
+            steps {
+                echo "Pipeline triggered due to merge from dev -> main"
+            }
+        }
+
+        stage('Checkout Code') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stages {
+            stage('Checkout Code') {
+                steps {
+                    git branch: 'main', url: 'https://github.com/mita-devops/Dipti_Final_exam.git'
+                }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    sh "docker build -t ${IMAGE_NAME}:${TIMESTAMP} ."
+                }
+            }
+        }
+
+        stage('Push Docker Image to DockerHub') {
+            steps {
+                script {
+                    sh "echo 'Mita4229@' | docker login -u 'mita_docker_final' --password-stdin"
+                    sh "docker push ${IMAGE_NAME}:${TIMESTAMP}"
+                    sh "docker logout"
+                }
+            }
+        }
+
+        stage('Update Docker Compose File') {
+            steps {
+                script {
+                    sh """
+                    sed -i 's|image: .*|image: ${IMAGE_NAME}:${TIMESTAMP}|' /var/www/app/docker-compose.yml
+                    """
+                }
+            }
+        }
+
+        stage('Restart Application with New Image') {
+            steps {
+                script {
+                    sh """
+                    cd /var/www/app
+                    docker-compose down
+                    docker-compose up -d
+                    """
+                }
+            }
+        }
+
+        stage('Clean Workspace') {
+            steps {
+                cleanWs()
+            }
+        }
+
+        stage('Send Google Chat Notification') {
+            steps {
+                script {
+                    def message = "Your application has been updated,\nImagename: ${IMAGE_NAME}:${TIMESTAMP}"
+                    sh """
+                    curl -X POST -H "Content-Type: application/json" -d '{"text": "${message}"}' "YOUR_GOOGLE_CHAT_WEBHOOK_URL"
+                    """
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "Pipeline executed successfully!"
+        }
+        failure {
+            echo "Pipeline failed!"
+        }
+    }
+}

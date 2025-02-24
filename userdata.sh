@@ -13,7 +13,6 @@ sudo apt install -y jenkins
 
 # Install Docker
 sudo apt install -y docker.io
-
 # Add Jenkins user to the Docker group
 sudo usermod -aG docker jenkins
 

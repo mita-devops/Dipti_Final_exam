@@ -1,4 +1,9 @@
 #!/bin/bash
+
+# Create application directory
+sudo mkdir -p /var/www/app
+sudo chown -R jenkins:docker /var/www/app
+
 # Update package lists
 sudo apt update -y
 

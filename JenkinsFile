@@ -8,6 +8,15 @@ pipeline {
         TIMESTAMP = "${BUILD_NUMBER}-${new Date().format('dd-MM-HH-mm')}"
     }
 
+    triggers {
+        GitLab(
+            triggerOnPush: false,
+            triggerOnMergeRequest: true,
+            branchFilterType: "Name",
+            includeBranches: "main"
+        )
+    }
+
     stages {
         stage('Trigger on Merge Request') {
             when {

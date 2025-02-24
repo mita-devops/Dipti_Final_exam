@@ -4,7 +4,7 @@ pipeline {
     environment {
         DOCKERHUB_USERNAME = credentials('mita03-devops-final') // Stored in Jenkins credentials
         DOCKERHUB_PASSWORD = credentials('Mita4229@') // Stored in Jenkins credentials
-        IMAGE_NAME = "mita_docker_image"
+        IMAGE_NAME = "imagetag"
         TIMESTAMP = "${BUILD_NUMBER}-${new Date().format('dd-MM-HH-mm')}"
     }
 

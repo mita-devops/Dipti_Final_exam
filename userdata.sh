@@ -1,9 +1,4 @@
 #!/bin/bash
-
-# Create application directory
-sudo mkdir -p /var/www/app
-sudo chown -R jenkins:docker /var/www/app
-
 # Update package lists
 sudo apt update -y
 
@@ -27,3 +22,26 @@ sudo systemctl enable jenkins
 sudo systemctl restart jenkins
 sudo systemctl enable docker
 sudo systemctl restart docker
+
+# Create application directory
+sudo mkdir -p /var/www/app
+sudo chown -R jenkins:docker /var/www/app
+
+# Create docker-compose.yml
+cat << 'EOF' | sudo tee /var/www/app/docker-compose.yml
+version: '3.8'
+services:
+  webapp:
+    image: nginx:alpine  # Replace with your actual image
+    ports:
+      - "9097:80"
+    volumes:
+      - ./app:/usr/share/nginx/html
+    restart: unless-stopped
+EOF
+
+# Set permissions
+sudo chmod -R 775 /var/www/app
+
+# Start application (executed as jenkins user)
+sudo -u jenkins bash -c 'cd /var/www/app && docker compose up -d'
